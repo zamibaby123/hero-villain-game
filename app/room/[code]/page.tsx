@@ -185,6 +185,13 @@ export default function RoomPage() {
     if (error) setError(error.message)
   }
 
+    async function handleLeaveWaitingRoom() {
+    if (!roomId) return
+    const deviceId = getDeviceId()
+    await supabase.functions.invoke('leave-room', { body: { roomId, deviceId } })
+    router.push('/')
+  }
+
   function handleCopyLink() {
     const link = `${window.location.origin}/room/${code}`
     navigator.clipboard.writeText(link)
@@ -256,6 +263,13 @@ export default function RoomPage() {
         onClick={handleStart}
       >
         Start Game
+      </button>
+      
+      <button
+        className="w-full max-w-xs px-4 py-3 rounded bg-gray-700 font-semibold"
+        onClick={handleLeaveWaitingRoom}
+      >
+        Leave Waiting Room
       </button>
     </main>
   )
