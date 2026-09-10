@@ -251,6 +251,7 @@ export default function RoomPage() {
         </button>
 
 
+
         {joinError && <p className="text-red-400 text-sm">{joinError}</p>}
       </main>
     )
