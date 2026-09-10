@@ -19,6 +19,7 @@ export default function RoomPage() {
   const [status, setStatus] = useState('lobby')
   const [seated, setSeated] = useState<SeatedPlayer[]>([])
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null)
+  const [hostPlayerId, setHostPlayerId] = useState<string | null>(null)
   const [isSeated, setIsSeated] = useState(false)
   const [checkingSeat, setCheckingSeat] = useState(true)
   const [joinName, setJoinName] = useState('')
@@ -26,6 +27,8 @@ export default function RoomPage() {
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+
+
 
   async function loadSeated(rid: string) {
     const { data } = await supabase
@@ -76,6 +79,7 @@ export default function RoomPage() {
       }
       setRoomId(room.id)
       setStatus(room.status)
+      setHostPlayerId(room.host_player_id)
 
       if (room.status === 'playing') {
         router.push(`/room/${code}/play`)
@@ -103,6 +107,7 @@ export default function RoomPage() {
         { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
         (payload) => {
           setStatus(payload.new.status)
+          setHostPlayerId(payload.new.host_player_id)
           if (payload.new.status === 'playing') {
             router.push(`/room/${code}/play`)
           }
@@ -251,19 +256,25 @@ export default function RoomPage() {
 
       <ul className="w-full max-w-xs space-y-2">
         {seated.map((p) => (
-          <li key={p.id} className="px-4 py-2 rounded bg-gray-800">
-            {p.players?.username ?? 'Unknown'}
+          <li key={p.id} className="px-4 py-2 rounded bg-gray-800 flex justify-between">
+            <span>{p.players?.username ?? 'Unknown'}{p.player_id === myPlayerId && <span className="text-indigo-300"> (You)</span>}</span>
+            {p.player_id === hostPlayerId && <span className="text-xs text-amber-400 uppercase self-center">Host</span>}
           </li>
         ))}
       </ul>
 
-      <button
-        className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-40"
-        disabled={seated.length !== 4}
-        onClick={handleStart}
-      >
-        Start Game
-      </button>
+      {myPlayerId === hostPlayerId ? (
+        <button
+          className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-40"
+          disabled={seated.length !== 4}
+          onClick={handleStart}
+        >
+          Start Game
+        </button>
+      ) : (
+        <p className="text-sm text-gray-500">Waiting for the host to start...</p>
+      )}
+
       
       <button
         className="w-full max-w-xs px-4 py-3 rounded bg-gray-700 font-semibold"

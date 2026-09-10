@@ -60,7 +60,7 @@ export default function Home() {
 
       const { data: room, error } = await supabase
         .from('rooms')
-        .insert({ code })
+        .insert({ code, host_player_id: player.id })
         .select()
         .single()
       if (error) throw error
