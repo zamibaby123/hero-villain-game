@@ -14,6 +14,7 @@ export default function PlayPage() {
   const [roomId, setRoomId] = useState<string | null>(null)
   const [roundId, setRoundId] = useState<string | null>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [coVillainIds, setCoVillainIds] = useState<string[]>([])
   const [word, setWord] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -61,6 +62,8 @@ export default function PlayPage() {
     setRole(data.role)
     setWord(data.word)
     setRoundId(data.roundId)
+    setCoVillainIds(data.coVillainIds ?? [])
+
 
     const { data: round } = await supabase
       .from('rounds')
@@ -137,6 +140,8 @@ export default function PlayPage() {
       setRole(data.role)
       setWord(data.word)
       setRoundId(data.roundId)
+      setCoVillainIds(data.coVillainIds ?? [])
+
 
       let alive = true
       if (myPlayer) {
@@ -250,7 +255,7 @@ export default function PlayPage() {
       await supabase.functions.invoke('reveal-next-word', { body: { roundId } })
       const { data } = await supabase
         .from('submissions')
-        .select('id, word, no_submission, reveal_order, room_players(player_id, players(username))')
+        .select('id, word, no_submission, reveal_order, room_players(id, player_id, players(username))')
         .eq('round_id', roundId)
         .eq('revealed', true)
         .order('reveal_order', { ascending: true })
@@ -528,9 +533,10 @@ export default function PlayPage() {
         <ul className="w-full max-w-xs space-y-2">
           {submissions.map((s) => {
             const isMe = s.room_players?.player_id === myPlayerId
+            const isCoVillain = coVillainIds.includes(s.room_players?.id)
             return (
               <li key={s.id} className={`px-4 py-3 rounded flex justify-between ${isMe ? 'bg-indigo-900 border border-indigo-500' : 'bg-gray-800'}`}>
-                <span>{s.room_players?.players?.username ?? '???'}{isMe && <span className="text-indigo-300"> (You)</span>}</span>
+                <span>{s.room_players?.players?.username ?? '???'}{isMe && <span className="text-indigo-300"> (You)</span>}{isCoVillain && <span className="text-red-400"> (Co-Villain)</span>}</span>
                 <span className={s.no_submission ? 'text-gray-500 italic' : 'font-semibold'}>
                   {s.no_submission ? 'No submission' : s.word}
                 </span>
@@ -569,6 +575,7 @@ export default function PlayPage() {
                   </li>
                 )
               }
+              const isCoVillain = coVillainIds.includes(p.id)
               return (
                 <li key={p.id}>
                   <button
@@ -576,7 +583,7 @@ export default function PlayPage() {
                     onClick={() => handleSelectVote(p.id)}
                     disabled={voteConfirmed}
                   >
-                    {p.players?.username ?? '???'}
+                    {p.players?.username ?? '???'}{isCoVillain && <span className="text-red-400"> (Co-Villain)</span>}
                   </button>
                 </li>
               )

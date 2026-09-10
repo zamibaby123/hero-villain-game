@@ -236,7 +236,7 @@ export default function RoomPage() {
         <button
           className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-50"
           onClick={handleJoin}
-          disabled={joining || seated.length >= 4}
+          disabled={joining || seated.length >= 8}
         >
           {seated.length >= 4 ? 'Room is full' : joining ? 'Joining...' : 'Join Room'}
         </button>
@@ -252,7 +252,7 @@ export default function RoomPage() {
       <button className="text-sm text-indigo-400 underline" onClick={handleCopyLink}>
         {copied ? 'Link copied!' : 'Copy room link'}
       </button>
-      <p className="text-gray-400">{seated.length} / 4 players joined</p>
+      <p className="text-gray-400">{seated.length} / 8 players joined</p>
 
       <ul className="w-full max-w-xs space-y-2">
         {seated.map((p) => (
@@ -266,15 +266,16 @@ export default function RoomPage() {
       {myPlayerId === hostPlayerId ? (
         <button
           className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-40"
-          disabled={seated.length !== 4}
+          disabled={seated.length < 4}
           onClick={handleStart}
         >
           Start Game
         </button>
+      ) : seated.length >= 4 ? (
+        <p className="text-sm text-emerald-400">The host can now start ({seated.length}/8 joined)</p>
       ) : (
-        <p className="text-sm text-gray-500">Waiting for the host to start...</p>
+        <p className="text-sm text-gray-500">Waiting for more players to join ({seated.length}/4 minimum)</p>
       )}
-
       
       <button
         className="w-full max-w-xs px-4 py-3 rounded bg-gray-700 font-semibold"
