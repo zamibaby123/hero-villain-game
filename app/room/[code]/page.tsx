@@ -170,7 +170,7 @@ export default function RoomPage() {
         .from('room_players')
         .select('*', { count: 'exact', head: true })
         .eq('room_id', roomId)
-      if (count && count >= 4) throw new Error('Room is full')
+      if (count && count >= 8) throw new Error('Room is full')
 
       await supabase.from('room_players').insert({
         room_id: roomId,
