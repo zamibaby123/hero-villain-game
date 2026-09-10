@@ -120,6 +120,14 @@ export default function RoomPage() {
     }
   }, [roomId, code, router])
 
+  // Safety net: keep the seat count fresh even if Realtime drops (e.g. backgrounded tab)
+  useEffect(() => {
+    if (!roomId || isSeated) return
+    const interval = setInterval(() => loadSeated(roomId), 4000)
+    return () => clearInterval(interval)
+  }, [roomId, isSeated])
+
+
   async function handleJoin() {
     if (!joinName.trim()) {
       setJoinError('Enter your name first')
@@ -180,8 +188,8 @@ export default function RoomPage() {
 
   async function handleStart() {
     if (!roomId) return
-    if (seated.length !== 4) {
-      setError('Need exactly 4 players to start')
+    if (seated.length < 4) {
+      setError('Need at least 4 players to start')
       return
     }
     const { error } = await supabase.functions.invoke('start-game', {
@@ -224,7 +232,8 @@ export default function RoomPage() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
         <h1 className="text-2xl font-bold">Join Room {code}</h1>
-        <p className="text-gray-400 text-sm">{seated.length} / 4 players already in</p>
+        <p className="text-gray-400 text-sm">{seated.length} / 8 players in this room</p>
+
 
         <input
           className="w-full max-w-xs px-4 py-3 rounded bg-gray-800 border border-gray-700"
@@ -238,8 +247,9 @@ export default function RoomPage() {
           onClick={handleJoin}
           disabled={joining || seated.length >= 8}
         >
-          {seated.length >= 4 ? 'Room is full' : joining ? 'Joining...' : 'Join Room'}
+          {seated.length >= 8 ? 'Room is full' : joining ? 'Joining...' : 'Join Room'}
         </button>
+
 
         {joinError && <p className="text-red-400 text-sm">{joinError}</p>}
       </main>
