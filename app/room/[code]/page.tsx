@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesModal from '@/components/RulesModal'
+import RulesButton from '@/components/RulesModal'
 
 
 type SeatedPlayer = {
@@ -29,7 +29,6 @@ export default function RoomPage() {
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
-  const [showRules, setShowRules] = useState(false)
 
 
 
@@ -264,12 +263,7 @@ export default function RoomPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
       <h1 className="text-2xl font-bold">Room {code}</h1>
-      <button
-          className="text-gray-400 border border-gray-700 rounded-full w-7 h-7 text-sm"
-          onClick={() => setShowRules(true)}
-        >
-          ?
-      </button>
+     
 
       <button className="text-sm text-indigo-400 underline" onClick={handleCopyLink}>
         {copied ? 'Link copied!' : 'Copy room link'}
@@ -311,7 +305,8 @@ export default function RoomPage() {
         Leave Waiting Room
       </button>
       
-      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+      <RulesButton />
+
     </main>
   )
 }

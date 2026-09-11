@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesModal from '@/components/RulesModal'
+import RulesButton from '@/components/RulesModal'
 
 
 
@@ -466,6 +466,7 @@ export default function PlayPage() {
     // Only reachable if alive — eliminated players skip straight to 'submit' as spectators
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {Timer}
         <p className="text-sm uppercase tracking-widest text-gray-400">You are the</p>
         <h1 className={`text-4xl font-bold ${role === 'villain' ? 'text-red-500' : 'text-emerald-400'}`}>
@@ -485,6 +486,7 @@ export default function PlayPage() {
     if (!myAlive) {
       return (
         <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+          <RulesButton />
           {SpectatorBanner}
           {Timer}
           <p className="text-gray-400 text-sm">Watching the others submit their words...</p>
@@ -494,6 +496,7 @@ export default function PlayPage() {
     }
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {RoleBanner}
         {Timer}
         <p className="text-gray-400 text-sm">Submit a word that hints at your knowledge</p>
@@ -520,6 +523,7 @@ export default function PlayPage() {
   if (phase === 'waiting') {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {SpectatorBanner}
         {RoleBanner}
         {Timer}
@@ -539,6 +543,7 @@ export default function PlayPage() {
     const secondsToVoting = votingStartsAt ? Math.max(0, Math.ceil((votingStartsAt - Date.now()) / 1000)) : null
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {SpectatorBanner}
         {RoleBanner}
         {PlayingAs}
@@ -569,6 +574,7 @@ export default function PlayPage() {
   if (phase === 'voting') {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {SpectatorBanner}
         {RoleBanner}
         {PlayingAs}
@@ -644,6 +650,7 @@ export default function PlayPage() {
   if (phase === 'results') {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <RulesButton />
         {SpectatorBanner}
         {eliminatedName ? (
           <>
@@ -721,6 +728,7 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <RulesButton />
       <h1 className="text-3xl font-bold">
         {winner === 'heroes' ? 'Heroes Win!' : winner === 'villain' ? 'Villain Wins!' : 'Game Over'}
       </h1>

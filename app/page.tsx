@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesModal from '@/components/RulesModal'
+import RulesButton from '@/components/RulesModal'
 
 
 
@@ -21,16 +21,8 @@ export default function Home() {
   const [name, setName] = useState('')
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
-  const [showRules, setShowRules] = useState(false)
   const router = useRouter()
   
-  useEffect(() => {
-    const seen = localStorage.getItem('hasSeenRules')
-    if (!seen) {
-      setShowRules(true)
-      localStorage.setItem('hasSeenRules', 'true')
-    }
-  }, [])
 
 
   async function ensurePlayer(username: string) {
@@ -136,12 +128,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold">Hero vs. Villain</h1>
 
       <div className="w-full max-w-xs flex justify-end">
-        <button
-          className="text-gray-400 border border-gray-700 rounded-full w-7 h-7 text-sm"
-          onClick={() => setShowRules(true)}
-        >
-          ?
-        </button>
+        
       </div>
 
       <input
@@ -174,7 +161,7 @@ export default function Home() {
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
-      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+      <RulesButton />
 
     </main>
   )
