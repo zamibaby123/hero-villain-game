@@ -123,6 +123,51 @@ export default function RoomPage() {
     }
   }, [roomId, code, router])
 
+  // Send a heartbeat every 15 seconds while seated in the Waiting Room
+  useEffect(() => {
+    if (!roomId || !isSeated) return
+    const deviceId = getDeviceId()
+
+    const send = () => {
+      supabase.functions.invoke('heartbeat', { body: { roomId, deviceId } })
+    }
+    send()
+    const interval = setInterval(send, 15000)
+    return () => clearInterval(interval)
+  }, [roomId, isSeated])
+
+  // Periodically clean up stale seats, and check if I've been removed myself
+  useEffect(() => {
+    if (!roomId || !isSeated) return
+
+    const interval = setInterval(async () => {
+      await supabase.functions.invoke('cleanup-stale-seats', { body: { roomId } })
+
+      const deviceId = getDeviceId()
+      const { data: me } = await supabase
+        .from('players')
+        .select('id')
+        .eq('device_id', deviceId)
+        .single()
+      if (!me) return
+
+      const { data: stillSeated } = await supabase
+        .from('room_players')
+        .select('id')
+        .eq('room_id', roomId)
+        .eq('player_id', me.id)
+        .single()
+
+      if (!stillSeated) {
+        setIsSeated(false)
+        router.push('/')
+      }
+    }, 20000)
+
+    return () => clearInterval(interval)
+  }, [roomId, isSeated, router])
+
+
   // Safety net: keep the seat count fresh even if Realtime drops (e.g. backgrounded tab)
   useEffect(() => {
     if (!roomId || isSeated) return
