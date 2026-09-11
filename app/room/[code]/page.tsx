@@ -247,6 +247,7 @@ export default function RoomPage() {
     await supabase.from('rooms').update({ is_public: newValue }).eq('id', roomId)
   }
 
+
   async function handleRemovePlayer(targetRoomPlayerId: string) {
     if (!roomId) return
     const hostDeviceId = getDeviceId()
@@ -345,12 +346,13 @@ export default function RoomPage() {
           <label className="flex items-center gap-2 text-sm text-gray-400">
             <input
               type="checkbox"
-              checked={isPublic}
+              checked={!isPublic}
               onChange={handleTogglePublic}
             />
-            Make room public (visible in the Lobby once it's built)
+            Make room private (only joinable via code/link)
           </label>
         )}
+
 
       <p className="text-gray-400">{seated.length} / 8 players joined</p>
 

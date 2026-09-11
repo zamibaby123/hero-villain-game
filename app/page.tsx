@@ -22,7 +22,7 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
-  const [isPublic, setIsPublic] = useState(false)
+  const [isPublic, setIsPublic] = useState(true)
 
   
 
@@ -143,11 +143,12 @@ export default function Home() {
       <label className="flex items-center gap-2 text-sm text-gray-400">
         <input
           type="checkbox"
-          checked={isPublic}
-          onChange={(e) => setIsPublic(e.target.checked)}
+          checked={!isPublic}
+          onChange={(e) => setIsPublic(!e.target.checked)}
         />
-        Make this room public (visible in the Lobby once it's built)
+        Make this room private (only joinable via code/link)
       </label>
+
 
       <button
         className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold"
