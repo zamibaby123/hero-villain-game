@@ -22,6 +22,8 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const [isPublic, setIsPublic] = useState(false)
+
   
 
 
@@ -65,7 +67,7 @@ export default function Home() {
 
       const { data: room, error } = await supabase
         .from('rooms')
-        .insert({ code, host_player_id: player.id })
+        .insert({ code, host_player_id: player.id, is_public: isPublic })
         .select()
         .single()
       if (error) throw error
@@ -137,6 +139,15 @@ export default function Home() {
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
+
+      <label className="flex items-center gap-2 text-sm text-gray-400">
+        <input
+          type="checkbox"
+          checked={isPublic}
+          onChange={(e) => setIsPublic(e.target.checked)}
+        />
+        Make this room public (visible in the Lobby once it's built)
+      </label>
 
       <button
         className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold"

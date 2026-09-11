@@ -29,6 +29,8 @@ export default function RoomPage() {
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [isPublic, setIsPublic] = useState(false)
+
 
 
 
@@ -83,6 +85,8 @@ export default function RoomPage() {
       setRoomId(room.id)
       setStatus(room.status)
       setHostPlayerId(room.host_player_id)
+      setIsPublic(room.is_public)
+
 
       if (room.status === 'playing') {
         router.push(`/room/${code}/play`)
@@ -111,10 +115,12 @@ export default function RoomPage() {
         (payload) => {
           setStatus(payload.new.status)
           setHostPlayerId(payload.new.host_player_id)
+          setIsPublic(payload.new.is_public)
           if (payload.new.status === 'playing') {
             router.push(`/room/${code}/play`)
           }
         }
+
       )
       .subscribe()
 
@@ -234,6 +240,13 @@ export default function RoomPage() {
     }
   }
 
+  async function handleTogglePublic() {
+    if (!roomId || myPlayerId !== hostPlayerId) return
+    const newValue = !isPublic
+    setIsPublic(newValue)
+    await supabase.from('rooms').update({ is_public: newValue }).eq('id', roomId)
+  }
+
   async function handleRemovePlayer(targetRoomPlayerId: string) {
     if (!roomId) return
     const hostDeviceId = getDeviceId()
@@ -321,6 +334,24 @@ export default function RoomPage() {
       <button className="text-sm text-indigo-400 underline" onClick={handleCopyLink}>
         {copied ? 'Link copied!' : 'Copy room link'}
       </button>
+
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-300">
+            This room is {isPublic ? 'public 🔓' : 'private 🔒'}
+          </span>
+        </div>
+
+        {myPlayerId === hostPlayerId && (
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={handleTogglePublic}
+            />
+            Make room public (visible in the Lobby once it's built)
+          </label>
+        )}
+
       <p className="text-gray-400">{seated.length} / 8 players joined</p>
 
       <ul className="w-full max-w-xs space-y-2">
