@@ -39,6 +39,8 @@ export default function PlayPage() {
 
   const [voteCount, setVoteCount] = useState(0)
   const [eliminatedName, setEliminatedName] = useState<string | null>(null)
+  const [eliminatedRole, setEliminatedRole] = useState<string | null>(null)
+  const [villainsRemaining, setVillainsRemaining] = useState<number | null>(null)
   const [winner, setWinner] = useState<string | null>(null)
   const [showReview, setShowReview] = useState(false)
   const [votingStartsAt, setVotingStartsAt] = useState<number | null>(null)
@@ -79,6 +81,8 @@ export default function PlayPage() {
     setVoteConfirmed(false)
     setVoteCount(0)
     setEliminatedName(null)
+    setEliminatedRole(null)
+    setVillainsRemaining(null)
     setShowReview(false)
     await fetchAliveCount()
 
@@ -308,7 +312,7 @@ export default function PlayPage() {
     const interval = setInterval(async () => {
       const { data: round } = await supabase
         .from('rounds')
-        .select('votes_tallied, eliminated_room_player_id')
+        .select('votes_tallied, eliminated_room_player_id, eliminated_role, villains_remaining')
         .eq('id', roundId)
         .single()
 
@@ -317,9 +321,12 @@ export default function PlayPage() {
         if (elimId) {
           const elim = alivePlayers.find((p) => p.id === elimId)
           setEliminatedName(elim?.players?.username ?? 'Someone')
+          setEliminatedRole(round.eliminated_role)
+          setVillainsRemaining(round.villains_remaining)
           if (elim?.player_id === myPlayerId) setMyAlive(false)
         } else {
           setEliminatedName(null)
+          setEliminatedRole(null)
         }
         setPhase('results')
         return
@@ -633,7 +640,17 @@ export default function PlayPage() {
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
         {SpectatorBanner}
         {eliminatedName ? (
-          <p className="text-xl font-bold">{eliminatedName} was eliminated!</p>
+          <>
+            <p className="text-xl font-bold">{eliminatedName} was eliminated!</p>
+            <p className="text-gray-400">
+              {eliminatedName} was a {eliminatedRole === 'villain' ? 'Villain' : 'Hero'}
+            </p>
+            {villainsRemaining !== null && (
+              <p className="text-sm text-red-400">
+                There {villainsRemaining === 1 ? 'is' : 'are'} {villainsRemaining} Villain{villainsRemaining === 1 ? '' : 's'} remaining
+              </p>
+            )}
+          </>
         ) : (
           <p className="text-xl font-bold">The vote was tied — no one is eliminated</p>
         )}

@@ -266,7 +266,12 @@ export default function RoomPage() {
       <p className="text-gray-400">{seated.length} / 8 players joined</p>
 
       <ul className="w-full max-w-xs space-y-2">
-        {seated.map((p) => (
+        {[...seated].sort((a, b) => {
+          if (a.player_id === hostPlayerId) return -1
+          if (b.player_id === hostPlayerId) return 1
+          return 0
+        }).map((p) => (
+        
           <li key={p.id} className="px-4 py-2 rounded bg-gray-800 flex justify-between">
             <span>{p.players?.username ?? 'Unknown'}{p.player_id === myPlayerId && <span className="text-indigo-300"> (You)</span>}</span>
             {p.player_id === hostPlayerId && <span className="text-xs text-amber-400 uppercase self-center">Host</span>}
