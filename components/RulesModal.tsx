@@ -39,7 +39,7 @@ export default function RulesButton() {
               <p><span className="text-emerald-400 font-semibold">Heroes win</span> when all Villains are eliminated.</p>
               <p><span className="text-red-400 font-semibold">Villains win</span> when the number of Villains left is equal to the number of Heroes left.</p>
 
-              <p className="text-gray-500 text-xs pt-2">Villain count scales with room size — roughly 1 Villain per 3 players.</p>
+              <p className="text-gray-500 text-xs pt-2">Villain count scales with room size — 1 Villain per 3 players.</p>
             </div>
 
             <button

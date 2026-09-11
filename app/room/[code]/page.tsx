@@ -189,6 +189,14 @@ export default function RoomPage() {
     }
   }
 
+  async function handleRemovePlayer(targetRoomPlayerId: string) {
+    if (!roomId) return
+    const hostDeviceId = getDeviceId()
+    await supabase.functions.invoke('remove-player', {
+      body: { roomId, hostDeviceId, targetRoomPlayerId },
+    })
+  }
+
   async function handleStart() {
     if (!roomId) return
     if (seated.length < 4) {
@@ -276,10 +284,19 @@ export default function RoomPage() {
           if (b.player_id === hostPlayerId) return 1
           return 0
         }).map((p) => (
-        
-          <li key={p.id} className="px-4 py-2 rounded bg-gray-800 flex justify-between">
+          <li key={p.id} className="px-4 py-2 rounded bg-gray-800 flex justify-between items-center">
             <span>{p.players?.username ?? 'Unknown'}{p.player_id === myPlayerId && <span className="text-indigo-300"> (You)</span>}</span>
-            {p.player_id === hostPlayerId && <span className="text-xs text-amber-400 uppercase self-center">Host</span>}
+            <span className="flex items-center gap-2">
+              {p.player_id === hostPlayerId && <span className="text-xs text-amber-400 uppercase">Host</span>}
+              {myPlayerId === hostPlayerId && p.player_id !== myPlayerId && (
+                <button
+                  className="text-xs text-red-400 border border-red-800 rounded px-2 py-1"
+                  onClick={() => handleRemovePlayer(p.id)}
+                >
+                  Remove
+                </button>
+              )}
+            </span>
           </li>
         ))}
       </ul>
