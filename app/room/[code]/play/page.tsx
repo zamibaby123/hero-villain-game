@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
+import RulesModal from '@/components/RulesModal'
+
 
 
 type Phase = 'role' | 'submit' | 'waiting' | 'reveal' | 'voting' | 'results' | 'ended'
@@ -19,6 +21,8 @@ export default function PlayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [phase, setPhase] = useState<Phase>('role')
+  const [showRules, setShowRules] = useState(false)
+
 
   const [deadline, setDeadline] = useState<number | null>(null)
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
@@ -456,6 +460,8 @@ export default function PlayPage() {
     <p className="text-xs text-gray-500">Playing as <span className="text-white font-semibold">{myUsername}</span></p>
   )
 
+
+
   if (phase === 'role') {
     // Only reachable if alive — eliminated players skip straight to 'submit' as spectators
     return (
@@ -661,7 +667,11 @@ export default function PlayPage() {
 
   // phase === 'ended'
   return <EndedScreen roomId={roomId} code={code as string} winner={winner} />
+  // phase === 'ended'
+  return <EndedScreen roomId={roomId} code={code as string} winner={winner} />
 }
+
+
 
 function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: string; winner: string | null }) {
   const router = useRouter()
