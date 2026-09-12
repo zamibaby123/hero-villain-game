@@ -80,6 +80,14 @@ export default function Home() {
       )
     }
   }
+  
+  // Lobby screen periodically asks the server to sweep all empty/stale public rooms
+  useEffect(() => {
+    const interval = setInterval(() => {
+      supabase.functions.invoke('cleanup-all-stale-rooms', { body: {} })
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Throttled polling — every 4 seconds, stable order (no jumpy reordering)
   useEffect(() => {

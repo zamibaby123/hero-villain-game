@@ -16,11 +16,12 @@ export default function RulesButton() {
   return (
     <>
       <button
-        className="fixed top-4 right-4 z-40 text-gray-400 border border-gray-700 bg-gray-900 rounded-full w-8 h-8 text-sm flex items-center justify-center"
+        className="fixed top-3 right-3 z-40 text-gray-300 border border-gray-600 bg-gray-800 shadow-lg rounded-full w-9 h-9 text-base font-semibold flex items-center justify-center hover:bg-gray-700"
         onClick={() => setOpen(true)}
       >
         ?
       </button>
+
 
       {open && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
