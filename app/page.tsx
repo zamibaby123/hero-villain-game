@@ -7,6 +7,8 @@ import { getDeviceId } from '@/lib/deviceId'
 import { generateRandomName } from '@/lib/randomName'
 import AppHeader from '@/components/AppHeader'
 import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+
 
 
 
@@ -23,6 +25,22 @@ function generateRoomCode(): string {
   for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)]
   return code
 }
+
+function NoticeReader({ onNotice }: { onNotice: (msg: string) => void }) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  useEffect(() => {
+    const n = searchParams.get('notice')
+    if (n) {
+      onNotice(n)
+      router.replace('/')
+    }
+  }, [searchParams, router, onNotice])
+
+  return null
+}
+
 
 export default function Home() {
   const router = useRouter()
@@ -103,17 +121,6 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  // Show the kicked notice as a dismissible modal on the Home/Lobby screen
-  const searchParams = useSearchParams()
-  useEffect(() => {
-    const n = searchParams.get('notice')
-    if (n) {
-      setNotice(n)
-      router.replace('/')
-    }
-  }, [searchParams, router])
-
-
   async function handleCreateRoom() {
     setCreating(true)
     setError('')
@@ -182,8 +189,11 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center gap-6 p-6 bg-gray-950 text-white">
       
-      <AppHeader username={myUsername} />
+      <Suspense fallback={null}>
+        <NoticeReader onNotice={setNotice} />
+      </Suspense>
 
+      <AppHeader username={myUsername} />
 
       <h1 className="text-3xl font-bold">Heroes vs. Villains</h1>
 
@@ -243,6 +253,7 @@ export default function Home() {
         </ul>
       </div>
       
+      // Show the kicked notice as a dismissible modal JSX on the Home/Lobby screen 
       {notice && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-900 border border-gray-700 rounded-lg max-w-sm w-full p-6">
