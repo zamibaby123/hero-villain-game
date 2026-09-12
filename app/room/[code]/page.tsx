@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
 import AppHeader from '@/components/AppHeader'
 import { generateRandomName } from '@/lib/randomName'
+import RedirectingOverlay from '@/components/RedirectingOverlay'
+
 
 
 
@@ -172,7 +174,17 @@ export default function RoomPage() {
 
       if (!stillSeated) {
         setIsSeated(false)
-        router.push('/')
+        const { data: notice } = await supabase
+          .from('player_notices')
+          .select('message')
+          .eq('player_id', me.id)
+          .single()
+        if (notice) {
+          await supabase.from('player_notices').delete().eq('player_id', me.id)
+          router.push(`/?notice=${encodeURIComponent(notice.message)}`)
+        } else {
+          router.push('/')
+        }
       }
     }, 20000)
 
@@ -280,11 +292,7 @@ export default function RoomPage() {
   }
 
   if (error) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-        <p className="text-red-400">{error}</p>
-      </main>
-    )
+    return <RedirectingOverlay />
   }
 
   if (checkingSeat) {

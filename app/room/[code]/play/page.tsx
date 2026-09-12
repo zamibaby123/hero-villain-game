@@ -46,7 +46,6 @@ export default function PlayPage() {
   const [eliminatedRole, setEliminatedRole] = useState<string | null>(null)
   const [villainsRemaining, setVillainsRemaining] = useState<number | null>(null)
   const [winner, setWinner] = useState<string | null>(null)
-  const [showReview, setShowReview] = useState(false)
   const [votingStartsAt, setVotingStartsAt] = useState<number | null>(null)
 
   async function fetchAliveCount() {
@@ -87,7 +86,6 @@ export default function PlayPage() {
     setEliminatedName(null)
     setEliminatedRole(null)
     setVillainsRemaining(null)
-    setShowReview(false)
     await fetchAliveCount()
 
     if (!myAlive) {
@@ -587,27 +585,31 @@ export default function PlayPage() {
             .filter((p) => myAlive ? p.player_id !== myPlayerId : true)
             .map((p) => {
               const isMe = p.player_id === myPlayerId
+              const isCoVillain = coVillainIds.includes(p.id)
+              const sub = submissions.find((s) => s.room_players?.id === p.id)
+              const wordDisplay = sub ? (sub.no_submission ? 'No submission' : sub.word) : ''
               if (!myAlive) {
                 return (
-                  <li key={p.id} className={`px-4 py-3 rounded ${isMe ? 'bg-indigo-900 border border-indigo-500' : 'bg-gray-800'}`}>
-                    {p.players?.username ?? '???'}{isMe && <span className="text-indigo-300"> (You)</span>}
+                  <li key={p.id} className={`px-4 py-3 rounded flex justify-between ${isMe ? 'bg-indigo-900 border border-indigo-500' : 'bg-gray-800'}`}>
+                    <span>{p.players?.username ?? '???'}{isMe && <span className="text-indigo-300"> (You)</span>}</span>
+                    <span className="text-gray-400">{wordDisplay}</span>
                   </li>
                 )
               }
-              const isCoVillain = coVillainIds.includes(p.id)
               return (
                 <li key={p.id}>
                   <button
-                    className={`w-full px-4 py-3 rounded text-left ${selectedTarget === p.id ? 'bg-indigo-600' : 'bg-gray-800'} disabled:opacity-60`}
+                    className={`w-full px-4 py-3 rounded flex justify-between items-center text-left ${selectedTarget === p.id ? 'bg-indigo-600' : 'bg-gray-800'} disabled:opacity-60`}
                     onClick={() => handleSelectVote(p.id)}
                     disabled={voteConfirmed}
                   >
-                    {p.players?.username ?? '???'}{isCoVillain && <span className="text-red-400"> (Co-Villain)</span>}
+                    <span>{p.players?.username ?? '???'}{isCoVillain && <span className="text-red-400"> (Co-Villain)</span>}</span>
+                    <span className="text-gray-300 text-sm">{wordDisplay}</span>
                   </button>
                 </li>
               )
             })}
-        </ul>
+          </ul>
 
         {myAlive && !voteConfirmed && selectedTarget && (
           <button
@@ -621,28 +623,6 @@ export default function PlayPage() {
           <p className="text-sm text-emerald-400">Vote confirmed — waiting for others...</p>
         )}
 
-        <button
-          className="text-sm text-indigo-400 underline mt-4"
-          onClick={() => setShowReview((s) => !s)}
-        >
-          {showReview ? 'Hide submissions' : 'Review submissions'}
-        </button>
-
-        {showReview && (
-          <ul className="w-full max-w-xs space-y-2 mt-2">
-            {submissions.map((s) => {
-              const isMe = s.room_players?.player_id === myPlayerId
-              return (
-                <li key={s.id} className={`px-4 py-3 rounded flex justify-between ${isMe ? 'bg-indigo-900 border border-indigo-500' : 'bg-gray-800'}`}>
-                  <span>{s.room_players?.players?.username ?? '???'}{isMe && <span className="text-indigo-300"> (You)</span>}</span>
-                  <span className={s.no_submission ? 'text-gray-500 italic' : 'font-semibold'}>
-                    {s.no_submission ? 'No submission' : s.word}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-        )}
       </main>
     )
   }

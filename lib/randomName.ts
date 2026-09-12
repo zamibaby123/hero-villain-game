@@ -11,5 +11,6 @@ export function generateRandomName(): string {
   const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]
   const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)]
   const num = Math.floor(Math.random() * 100)
-  return `${adj}${animal}${num}`
+  return `Guest_${adj}${animal}${num}`
 }
+

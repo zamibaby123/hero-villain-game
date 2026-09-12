@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
 import { generateRandomName } from '@/lib/randomName'
 import AppHeader from '@/components/AppHeader'
+import { useSearchParams } from 'next/navigation'
+
 
 
 type RoomPreview = {
@@ -29,6 +31,8 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [creating, setCreating] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+
 
   async function ensurePlayer() {
     const deviceId = getDeviceId()
@@ -72,12 +76,14 @@ export default function Home() {
 
     if (data) {
       setRooms(
-        data.map((r: any) => ({
+        data
+          .filter((r: any) => (r.room_players?.[0]?.count ?? 0) > 0)
+          .map((r: any) => ({
           id: r.id,
           code: r.code,
           host_username: r.players?.username ?? null,
           player_count: r.room_players?.[0]?.count ?? 0,
-        }))
+          }))
       )
     }
   }
@@ -96,6 +102,17 @@ export default function Home() {
     const interval = setInterval(fetchRooms, 4000)
     return () => clearInterval(interval)
   }, [])
+
+  // Show the kicked notice as a dismissible modal on the Home/Lobby screen
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const n = searchParams.get('notice')
+    if (n) {
+      setNotice(n)
+      router.replace('/')
+    }
+  }, [searchParams, router])
+
 
   async function handleCreateRoom() {
     setCreating(true)
@@ -225,6 +242,22 @@ export default function Home() {
           ))}
         </ul>
       </div>
+      
+      // Show the kicked notice as a dismissible modal JSX on the Home/Lobby screen 
+      {notice && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg max-w-sm w-full p-6">
+            <p className="text-lg mb-4">{notice}</p>
+            <button
+              className="w-full px-4 py-3 rounded bg-indigo-600 font-semibold"
+              onClick={() => setNotice(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
     </main>
   )
 }
