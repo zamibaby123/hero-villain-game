@@ -1,32 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesButton from '@/components/RulesButton'
 import { generateRandomName } from '@/lib/randomName'
+import RulesButton from '@/components/RulesButton'
 
-
-
+type RoomPreview = {
+  id: string
+  code: string
+  host_username: string | null
+  player_count: number
+}
 
 function generateRoomCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let code = ''
-  for (let i = 0; i < 5; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)]
   return code
 }
 
 export default function Home() {
+  const router = useRouter()
+  const [myUsername, setMyUsername] = useState('')
+  const [rooms, setRooms] = useState<RoomPreview[]>([])
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
-  const router = useRouter()
-  const [isPublic, setIsPublic] = useState(true)
-
-  
-
+  const [creating, setCreating] = useState(false)
 
   async function ensurePlayer() {
     const deviceId = getDeviceId()
@@ -35,7 +36,6 @@ export default function Home() {
       .select('*')
       .eq('device_id', deviceId)
       .single()
-
     if (existing) return existing
 
     const randomName = generateRandomName()
@@ -44,13 +44,52 @@ export default function Home() {
       .insert({ device_id: deviceId, username: randomName })
       .select()
       .single()
-
     if (error) throw error
     return created
   }
 
+  useEffect(() => {
+    ensurePlayer().then((p) => setMyUsername(p.username))
+  }, [])
 
-  async function handleCreate() {
+  // Sitewide "online" heartbeat
+  useEffect(() => {
+    const deviceId = getDeviceId()
+    const send = () => supabase.functions.invoke('site-heartbeat', { body: { deviceId } })
+    send()
+    const interval = setInterval(send, 15000)
+    return () => clearInterval(interval)
+  }, [])
+
+  async function fetchRooms() {
+    const { data } = await supabase
+      .from('rooms')
+      .select('id, code, players(username), room_players(count)')
+      .eq('is_public', true)
+      .eq('status', 'lobby')
+      .order('created_at', { ascending: true })
+
+    if (data) {
+      setRooms(
+        data.map((r: any) => ({
+          id: r.id,
+          code: r.code,
+          host_username: r.players?.username ?? null,
+          player_count: r.room_players?.[0]?.count ?? 0,
+        }))
+      )
+    }
+  }
+
+  // Throttled polling — every 4 seconds, stable order (no jumpy reordering)
+  useEffect(() => {
+    fetchRooms()
+    const interval = setInterval(fetchRooms, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
+  async function handleCreateRoom() {
+    setCreating(true)
     setError('')
     try {
       const player = await ensurePlayer()
@@ -58,39 +97,41 @@ export default function Home() {
 
       const { data: room, error } = await supabase
         .from('rooms')
-        .insert({ code, host_player_id: player.id, is_public: isPublic })
+        .insert({ code, host_player_id: player.id, is_public: true })
         .select()
         .single()
       if (error) throw error
 
-      await supabase.from('room_players').insert({
-        room_id: room.id,
-        player_id: player.id,
-      })
-
+      await supabase.from('room_players').insert({ room_id: room.id, player_id: player.id })
       router.push(`/room/${code}`)
     } catch (e: any) {
       setError(e.message)
+    } finally {
+      setCreating(false)
     }
   }
 
-  async function handleJoin() {
-    if (!joinCode.trim()) return setError('Enter a room code')
+  async function handleGoToRoom(code: string) {
+    if (!code.trim()) {
+      setError('Enter a room code')
+      return
+    }
     setError('')
-    try {
-      const player = await ensurePlayer()
-      const code = joinCode.trim().toUpperCase()
+    const upperCode = code.trim().toUpperCase()
 
+    try {
       const { data: room, error: roomErr } = await supabase
         .from('rooms')
-        .select('*')
-        .eq('code', code)
+        .select('id')
+        .eq('code', upperCode)
         .single()
       if (roomErr || !room) throw new Error('Room not found')
 
+      const player = await ensurePlayer()
+
       const { data: seated } = await supabase
         .from('room_players')
-        .select('*')
+        .select('id')
         .eq('room_id', room.id)
         .eq('player_id', player.id)
         .single()
@@ -100,64 +141,86 @@ export default function Home() {
           .from('room_players')
           .select('*', { count: 'exact', head: true })
           .eq('room_id', room.id)
-      if (count && count >= 8) throw new Error('Room is full')
+        if (count && count >= 8) throw new Error('Room is full')
 
-
-        await supabase.from('room_players').insert({
-          room_id: room.id,
-          player_id: player.id,
-        })
+        await supabase.from('room_players').insert({ room_id: room.id, player_id: player.id })
       }
 
-      router.push(`/room/${code}`)
+      router.push(`/room/${upperCode}`)
     } catch (e: any) {
       setError(e.message)
     }
   }
 
-  return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
-      <h1 className="text-3xl font-bold">Hero vs. Villain</h1>
 
-      <div className="w-full max-w-xs flex justify-end">
-        
+  return (
+    <main className="min-h-screen flex flex-col items-center gap-6 p-6 bg-gray-950 text-white">
+      <RulesButton />
+
+      <div className="w-full max-w-xs flex justify-between items-center mt-8">
+        <span className="text-sm text-gray-400">
+          Playing as <span className="text-white font-semibold">{myUsername}</span>
+        </span>
+        <button className="text-xs text-indigo-400 underline">Sign Up / Log In</button>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-gray-400">
-        <input
-          type="checkbox"
-          checked={!isPublic}
-          onChange={(e) => setIsPublic(!e.target.checked)}
-        />
-        Make this room private (only joinable via code/link)
-      </label>
-
+      <h1 className="text-3xl font-bold">Hero & Villain</h1>
 
       <button
-        className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold"
-        onClick={handleCreate}
+        className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-50"
+        onClick={handleCreateRoom}
+        disabled={creating}
       >
-        Create Room
+        {creating ? 'Creating...' : 'Create Room'}
       </button>
 
       <div className="flex gap-2 w-full max-w-xs">
         <input
           className="flex-1 px-4 py-3 rounded bg-gray-800 border border-gray-700"
-          placeholder="Room code"
+          placeholder="Have a room code?"
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value)}
         />
         <button
           className="px-4 py-3 rounded bg-gray-700 font-semibold"
-          onClick={handleJoin}
+          onClick={() => handleGoToRoom(joinCode)}
         >
-          Join
+          Go
         </button>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
-      <RulesButton />
 
+      <div className="w-full max-w-xs mt-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-sm uppercase tracking-widest text-gray-400">Public Rooms</h2>
+          <button className="text-xs text-indigo-400 underline" onClick={fetchRooms}>
+            Refresh
+          </button>
+        </div>
+
+        {rooms.length === 0 && <p className="text-sm text-gray-500">No public rooms right now.</p>}
+
+        <ul className="space-y-2">
+          {rooms.map((r) => (
+            <li key={r.id} className="px-4 py-3 rounded bg-gray-800 flex justify-between items-center">
+              <div>
+                <p className="font-semibold">{r.host_username ?? 'Unknown'}'s Room</p>
+                <p className="text-xs text-gray-500">
+                  Code: {r.code} · {r.player_count}/8 players
+                </p>
+              </div>
+              <button
+                className="px-3 py-2 rounded bg-indigo-600 text-sm font-semibold disabled:opacity-40"
+                onClick={() => handleGoToRoom(r.code)}
+                disabled={r.player_count >= 8}
+              >
+                {r.player_count >= 8 ? 'Full' : 'Join'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   )
 }
