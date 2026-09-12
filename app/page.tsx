@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
 import { generateRandomName } from '@/lib/randomName'
 import AppHeader from '@/components/AppHeader'
 import { useSearchParams } from 'next/navigation'
-import { useState, useEffect, Suspense } from 'react'
+
 
 
 
