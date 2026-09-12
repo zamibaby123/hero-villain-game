@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesButton from '@/components/RulesModal'
+import RulesButton from '@/components/RulesButton'
+import { generateRandomName } from '@/lib/randomName'
+
 
 
 
@@ -18,7 +20,6 @@ function generateRoomCode(): string {
 }
 
 export default function Home() {
-  const [name, setName] = useState('')
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function Home() {
   
 
 
-  async function ensurePlayer(username: string) {
+  async function ensurePlayer() {
     const deviceId = getDeviceId()
     const { data: existing } = await supabase
       .from('players')
@@ -35,22 +36,12 @@ export default function Home() {
       .eq('device_id', deviceId)
       .single()
 
-    if (existing) {
-      if (existing.username !== username) {
-        const { data: updated } = await supabase
-          .from('players')
-          .update({ username })
-          .eq('id', existing.id)
-          .select()
-          .single()
-        return updated
-      }
-      return existing
-    }
+    if (existing) return existing
 
+    const randomName = generateRandomName()
     const { data: created, error } = await supabase
       .from('players')
-      .insert({ device_id: deviceId, username })
+      .insert({ device_id: deviceId, username: randomName })
       .select()
       .single()
 
@@ -58,11 +49,11 @@ export default function Home() {
     return created
   }
 
+
   async function handleCreate() {
-    if (!name.trim()) return setError('Enter your name first')
     setError('')
     try {
-      const player = await ensurePlayer(name.trim())
+      const player = await ensurePlayer()
       const code = generateRoomCode()
 
       const { data: room, error } = await supabase
@@ -84,11 +75,10 @@ export default function Home() {
   }
 
   async function handleJoin() {
-    if (!name.trim()) return setError('Enter your name first')
     if (!joinCode.trim()) return setError('Enter a room code')
     setError('')
     try {
-      const player = await ensurePlayer(name.trim())
+      const player = await ensurePlayer()
       const code = joinCode.trim().toUpperCase()
 
       const { data: room, error: roomErr } = await supabase
@@ -132,13 +122,6 @@ export default function Home() {
       <div className="w-full max-w-xs flex justify-end">
         
       </div>
-
-      <input
-        className="w-full max-w-xs px-4 py-3 rounded bg-gray-800 border border-gray-700"
-        placeholder="Your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
 
       <label className="flex items-center gap-2 text-sm text-gray-400">
         <input

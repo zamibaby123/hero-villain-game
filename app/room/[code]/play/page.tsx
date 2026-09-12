@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesButton from '@/components/RulesModal'
+import RulesButton from '@/components/RulesButton'
 
 
 

@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesButton from '@/components/RulesModal'
+import RulesButton from '@/components/RulesButton'
+import { generateRandomName } from '@/lib/randomName'
+
 
 
 type SeatedPlayer = {
@@ -24,7 +26,6 @@ export default function RoomPage() {
   const [hostPlayerId, setHostPlayerId] = useState<string | null>(null)
   const [isSeated, setIsSeated] = useState(false)
   const [checkingSeat, setCheckingSeat] = useState(true)
-  const [joinName, setJoinName] = useState('')
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
@@ -38,10 +39,12 @@ export default function RoomPage() {
   async function loadSeated(rid: string) {
     const { data } = await supabase
       .from('room_players')
-      .select('id, player_id, alive, players(username)')
+      .select('id, player_id, alive, players(username), joined_at')
       .eq('room_id', rid)
+      .order('joined_at', { ascending: true })
     if (data) setSeated(data as any)
   }
+
 
   async function checkIfSeated(rid: string) {
     const deviceId = getDeviceId()
@@ -183,10 +186,6 @@ export default function RoomPage() {
 
 
   async function handleJoin() {
-    if (!joinName.trim()) {
-      setJoinError('Enter your name first')
-      return
-    }
     if (!roomId) return
     setJoining(true)
     setJoinError('')
@@ -200,18 +199,11 @@ export default function RoomPage() {
         .single()
 
       let player = existing
-      if (existing && existing.username !== joinName.trim()) {
-        const { data: updated } = await supabase
-          .from('players')
-          .update({ username: joinName.trim() })
-          .eq('id', existing.id)
-          .select()
-          .single()
-        player = updated
-      } else if (!existing) {
+      if (!existing) {
+        const randomName = generateRandomName()
         const { data: created, error: createErr } = await supabase
           .from('players')
-          .insert({ device_id: deviceId, username: joinName.trim() })
+          .insert({ device_id: deviceId, username: randomName })
           .select()
           .single()
         if (createErr) throw createErr
@@ -239,6 +231,7 @@ export default function RoomPage() {
       setJoining(false)
     }
   }
+
 
   async function handleTogglePublic() {
     if (!roomId || myPlayerId !== hostPlayerId) return
@@ -303,14 +296,6 @@ export default function RoomPage() {
       <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
         <h1 className="text-2xl font-bold">Join Room {code}</h1>
         <p className="text-gray-400 text-sm">{seated.length} / 8 players in this room</p>
-
-
-        <input
-          className="w-full max-w-xs px-4 py-3 rounded bg-gray-800 border border-gray-700"
-          placeholder="Your name"
-          value={joinName}
-          onChange={(e) => setJoinName(e.target.value)}
-        />
 
         <button
           className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-50"
