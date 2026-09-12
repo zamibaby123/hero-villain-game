@@ -243,7 +243,6 @@ export default function Home() {
         </ul>
       </div>
       
-      // Show the kicked notice as a dismissible modal JSX on the Home/Lobby screen 
       {notice && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-900 border border-gray-700 rounded-lg max-w-sm w-full p-6">
