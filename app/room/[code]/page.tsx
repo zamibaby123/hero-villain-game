@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
 import AppHeader from '@/components/AppHeader'
 import { generateRandomName } from '@/lib/randomName'
 import RedirectingOverlay from '@/components/RedirectingOverlay'
+
+
 
 
 
@@ -25,6 +27,7 @@ export default function RoomPage() {
   const [status, setStatus] = useState('lobby')
   const [seated, setSeated] = useState<SeatedPlayer[]>([])
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null)
+  const myPlayerIdRef = useRef<string | null>(null)
   const [hostPlayerId, setHostPlayerId] = useState<string | null>(null)
   const [isSeated, setIsSeated] = useState(false)
   const [checkingSeat, setCheckingSeat] = useState(true)
@@ -64,6 +67,7 @@ export default function RoomPage() {
       return
     }
     setMyPlayerId(me.id)
+    myPlayerIdRef.current = me.id
     setMyUsername(me.username)
 
     const { data: seat } = await supabase
@@ -118,21 +122,22 @@ export default function RoomPage() {
         { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${roomId}` },
         async () => {
           await loadSeated(roomId)
-          if (!myPlayerId) return
+          const currentPlayerId = myPlayerIdRef.current
+          if (!currentPlayerId) return
           const { data: stillSeated } = await supabase
             .from('room_players')
             .select('id')
             .eq('room_id', roomId)
-            .eq('player_id', myPlayerId)
+            .eq('player_id', currentPlayerId)
             .single()
           if (!stillSeated) {
             const { data: notice } = await supabase
               .from('player_notices')
               .select('message')
-              .eq('player_id', myPlayerId)
+              .eq('player_id', currentPlayerId)
               .single()
             if (notice) {
-              await supabase.from('player_notices').delete().eq('player_id', myPlayerId)
+              await supabase.from('player_notices').delete().eq('player_id', currentPlayerId)
               router.push(`/?notice=${encodeURIComponent(notice.message)}`)
             } else {
               router.push('/')
@@ -262,6 +267,7 @@ export default function RoomPage() {
       })
 
       setMyPlayerId(player.id)
+      myPlayerIdRef.current = player.id
       setMyUsername(player.username)
       setIsSeated(true)
     } catch (e: any) {
