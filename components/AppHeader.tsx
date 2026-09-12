@@ -15,7 +15,7 @@ export default function AppHeader({ username }: { username?: string | null }) {
 
   return (
     <>
-    <div className="w-full max-w-xs flex justify-between items-start mt-6 text-sm">
+    <div className="fixed top-3 left-3 right-3 max-w-xs mx-auto flex justify-between items-start text-sm z-30 bg-gray-950/90 backdrop-blur-sm py-2 px-1 rounded">
         <span className="text-gray-400">
           {username ? (
             <>Playing as <span className="text-white font-semibold">{username}</span></>

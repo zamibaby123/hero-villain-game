@@ -42,6 +42,7 @@ export default function PlayPage() {
   const [voteConfirmed, setVoteConfirmed] = useState(false)
 
   const [voteCount, setVoteCount] = useState(0)
+  const [resultsStartedAt, setResultsStartedAt] = useState<number | null>(null)
   const [eliminatedName, setEliminatedName] = useState<string | null>(null)
   const [eliminatedRole, setEliminatedRole] = useState<string | null>(null)
   const [villainsRemaining, setVillainsRemaining] = useState<number | null>(null)
@@ -331,6 +332,7 @@ export default function PlayPage() {
           setEliminatedRole(null)
         }
         setPhase('results')
+        setResultsStartedAt(Date.now())
         return
       }
 
@@ -350,6 +352,7 @@ export default function PlayPage() {
   // Results phase: poll for what happens next (win, or a new round)
   useEffect(() => {
     if (phase !== 'results' || !roomId) return
+    if (resultsStartedAt && Date.now() - resultsStartedAt < 5000) return
 
     const interval = setInterval(async () => {
       const { data: room } = await supabase

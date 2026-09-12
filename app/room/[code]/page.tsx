@@ -107,6 +107,7 @@ export default function RoomPage() {
     init()
   }, [code])
 
+  // Room-subscription 
   useEffect(() => {
     if (!roomId) return
 
@@ -115,7 +116,29 @@ export default function RoomPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${roomId}` },
-        () => loadSeated(roomId)
+        async () => {
+          await loadSeated(roomId)
+          if (!myPlayerId) return
+          const { data: stillSeated } = await supabase
+            .from('room_players')
+            .select('id')
+            .eq('room_id', roomId)
+            .eq('player_id', myPlayerId)
+            .single()
+          if (!stillSeated) {
+            const { data: notice } = await supabase
+              .from('player_notices')
+              .select('message')
+              .eq('player_id', myPlayerId)
+              .single()
+            if (notice) {
+              await supabase.from('player_notices').delete().eq('player_id', myPlayerId)
+              router.push(`/?notice=${encodeURIComponent(notice.message)}`)
+            } else {
+              router.push('/')
+            }
+          }
+        }
       )
       .on(
         'postgres_changes',
@@ -394,7 +417,7 @@ export default function RoomPage() {
         className="w-full max-w-xs px-4 py-3 rounded bg-gray-700 font-semibold"
         onClick={handleLeaveWaitingRoom}
       >
-        Leave Waiting Room
+        Return to Lobby
       </button>
       
       <AppHeader username={myUsername} />
