@@ -15,7 +15,7 @@ export default function AppHeader({ username }: { username?: string | null }) {
 
   return (
     <>
-      <div className="w-full max-w-xs flex justify-between items-center mt-6 text-sm">
+    <div className="w-full max-w-xs flex justify-between items-start mt-6 text-sm">
         <span className="text-gray-400">
           {username ? (
             <>Playing as <span className="text-white font-semibold">{username}</span></>
@@ -23,13 +23,17 @@ export default function AppHeader({ username }: { username?: string | null }) {
             <>&nbsp;</>
           )}
         </span>
-        <div className="flex gap-3 items-center">
-          <button className="text-xs text-indigo-400 underline" onClick={() => setRulesOpen(true)}>
+        <div className="flex flex-col items-end gap-2">
+          <button className="text-xs text-indigo-400 underline">Sign Up / Log In</button>
+          <button
+            className="text-xs px-2 py-1 rounded border border-gray-600 bg-gray-800 text-gray-300"
+            onClick={() => setRulesOpen(true)}
+          >
             How to Play
           </button>
-          <button className="text-xs text-indigo-400 underline">Sign Up / Log In</button>
         </div>
       </div>
+
 
       {rulesOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
