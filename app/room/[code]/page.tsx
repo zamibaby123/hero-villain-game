@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
-import RulesButton from '@/components/RulesButton'
+import AppHeader from '@/components/AppHeader'
 import { generateRandomName } from '@/lib/randomName'
 
 
@@ -31,6 +31,8 @@ export default function RoomPage() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
+  const [myUsername, setMyUsername] = useState<string | null>(null)
+
 
 
 
@@ -50,7 +52,7 @@ export default function RoomPage() {
     const deviceId = getDeviceId()
     const { data: me } = await supabase
       .from('players')
-      .select('id')
+      .select('id, username')
       .eq('device_id', deviceId)
       .single()
 
@@ -60,6 +62,7 @@ export default function RoomPage() {
       return
     }
     setMyPlayerId(me.id)
+    setMyUsername(me.username)
 
     const { data: seat } = await supabase
       .from('room_players')
@@ -224,6 +227,7 @@ export default function RoomPage() {
       })
 
       setMyPlayerId(player.id)
+      setMyUsername(player.username)
       setIsSeated(true)
     } catch (e: any) {
       setJoinError(e.message)
@@ -385,7 +389,8 @@ export default function RoomPage() {
         Leave Waiting Room
       </button>
       
-      <RulesButton />
+      <AppHeader username={myUsername} />
+
 
     </main>
   )

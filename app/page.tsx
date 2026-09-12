@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getDeviceId } from '@/lib/deviceId'
 import { generateRandomName } from '@/lib/randomName'
-import RulesButton from '@/components/RulesButton'
+import AppHeader from '@/components/AppHeader'
+
 
 type RoomPreview = {
   id: string
@@ -163,16 +164,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center gap-6 p-6 bg-gray-950 text-white">
-      <RulesButton />
+      
+      <AppHeader username={myUsername} />
 
-      <div className="w-full max-w-xs flex justify-between items-center mt-8">
-        <span className="text-sm text-gray-400">
-          Playing as <span className="text-white font-semibold">{myUsername}</span>
-        </span>
-        <button className="text-xs text-indigo-400 underline">Sign Up / Log In</button>
-      </div>
 
-      <h1 className="text-3xl font-bold">Hero & Villain</h1>
+      <h1 className="text-3xl font-bold">Heroes vs. Villains</h1>
 
       <button
         className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-50"
