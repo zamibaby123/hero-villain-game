@@ -112,6 +112,9 @@ export default function RoomPage() {
 
       await loadSeated(room.id)
       await checkIfSeated(room.id)
+
+      // Re-check shortly after, in case a departing player's removal was still processing
+      setTimeout(() => loadSeated(room.id), 1500)
     }
     init()
   }, [code])
