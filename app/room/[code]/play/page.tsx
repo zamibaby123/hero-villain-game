@@ -677,11 +677,14 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
   const [countdown, setCountdown] = useState(10)
   const [actionTaken, setActionTaken] = useState(false)
   const [roster, setRoster] = useState<{ username: string; role: string }[]>([])
+  const [rosterLoaded, setRosterLoaded] = useState(false)
+
 
   useEffect(() => {
     if (!roomId) return
     supabase.functions.invoke('get-final-roster', { body: { roomId } }).then(({ data }) => {
       if (data?.roster) setRoster(data.roster)
+      setRosterLoaded(true)
     })
   }, [roomId])
 
@@ -730,6 +733,14 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
   const villains = roster.filter((r) => r.role === 'villain')
   const winningGroup = winner === 'heroes' ? heroes : villains
   const losingGroup = winner === 'heroes' ? villains : heroes
+
+  if (!rosterLoaded) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        <p className="text-gray-500">Loading results...</p>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
