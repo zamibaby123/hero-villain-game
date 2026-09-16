@@ -676,6 +676,14 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
   const router = useRouter()
   const [countdown, setCountdown] = useState(10)
   const [actionTaken, setActionTaken] = useState(false)
+  const [roster, setRoster] = useState<{ username: string; role: string }[]>([])
+
+  useEffect(() => {
+    if (!roomId) return
+    supabase.functions.invoke('get-final-roster', { body: { roomId } }).then(({ data }) => {
+      if (data?.roster) setRoster(data.roster)
+    })
+  }, [roomId])
 
   useEffect(() => {
     if (!roomId) return
@@ -718,12 +726,42 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
     router.push('/')
   }
 
+  const heroes = roster.filter((r) => r.role === 'hero')
+  const villains = roster.filter((r) => r.role === 'villain')
+  const winningGroup = winner === 'heroes' ? heroes : villains
+  const losingGroup = winner === 'heroes' ? villains : heroes
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
-    
       <h1 className="text-3xl font-bold">
         {winner === 'heroes' ? 'Heroes Win!' : winner === 'villain' ? 'Villain Wins!' : 'Game Over'}
       </h1>
+
+      {roster.length > 0 && (
+        <div className="w-full max-w-xs space-y-3">
+          <div>
+            <p className="text-xs uppercase text-emerald-400 mb-1">
+              {winner === 'heroes' ? 'Heroes Win' : 'Villains Win'}
+            </p>
+            <ul className="space-y-1">
+              {winningGroup.map((p, i) => (
+                <li key={i} className="px-3 py-2 rounded bg-gray-800 text-sm">{p.username}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs uppercase text-red-400 mb-1">
+              {winner === 'heroes' ? 'Villains Lose' : 'Heroes Lose'}
+            </p>
+            <ul className="space-y-1">
+              {losingGroup.map((p, i) => (
+                <li key={i} className="px-3 py-2 rounded bg-gray-800 text-sm">{p.username}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {!actionTaken && (
         <p className="text-sm text-gray-500">Returning to Waiting Room in {countdown}...</p>
       )}
