@@ -49,6 +49,16 @@ export default function PlayPage() {
   const [winner, setWinner] = useState<string | null>(null)
   const [votingStartsAt, setVotingStartsAt] = useState<number | null>(null)
 
+  const rolePhaseEndsAt = deadline ? deadline - 60000 : null
+  const roleCountdown = rolePhaseEndsAt ? Math.max(0, Math.ceil((rolePhaseEndsAt - Date.now()) / 1000)) : null
+
+
+  useEffect(() => {
+    if (phase !== 'role' || roleCountdown === null) return
+    if (roleCountdown <= 0) setPhase('submit')
+  }, [phase, roleCountdown])
+
+
   async function fetchAliveCount() {
     if (!roomId) return
     const { count } = await supabase
@@ -473,21 +483,18 @@ export default function PlayPage() {
 
 
   if (phase === 'role') {
-    // Only reachable if alive — eliminated players skip straight to 'submit' as spectators
+     const objective = role === 'villain'
+      ? "You don't know the secret word. Bluff with a word that could plausibly fit, and try not to get caught."
+      : "Submit a word that hints at the secret word — without saying it outright. Work together to catch the Villain."
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
-        <AppHeader username={myUsername} />
-        {Timer}
         <p className="text-sm uppercase tracking-widest text-gray-400">You are the</p>
         <h1 className={`text-4xl font-bold ${role === 'villain' ? 'text-red-500' : 'text-emerald-400'}`}>
           {role === 'villain' ? 'Villain' : 'Hero'}
         </h1>
-        <p className="text-sm text-gray-400 mt-4">Your word:</p>
-        <p className="text-2xl font-semibold">{word}</p>
-        <p className="text-xs text-gray-500 mt-2">You have 60 seconds to submit — the clock is already running</p>
-        <button className="mt-6 w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold" onClick={() => setPhase('submit')}>
-          Continue
-        </button>
+        <p className="text-sm text-gray-300 text-center max-w-xs">{objective}</p>
+        <p className="text-xs text-gray-500">You'll have 60 seconds to submit once this begins</p>
+        <p className="text-3xl font-bold text-emerald-400 mt-4">{roleCountdown ?? 10}</p>
       </main>
     )
   }
