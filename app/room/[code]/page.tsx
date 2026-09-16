@@ -37,6 +37,9 @@ export default function RoomPage() {
   const [copied, setCopied] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
   const [myUsername, setMyUsername] = useState<string | null>(null)
+  const [startingAt, setStartingAt] = useState<number | null>(null)
+  const [countdown, setCountdown] = useState<number | null>(null)
+  const startTriggeredRef = useRef(false)
 
 
 
@@ -98,6 +101,8 @@ export default function RoomPage() {
       setStatus(room.status)
       setHostPlayerId(room.host_player_id)
       setIsPublic(room.is_public)
+      setStartingAt(room.starting_at ? new Date(room.starting_at).getTime() : null)
+
 
 
       if (room.status === 'playing') {
@@ -152,11 +157,11 @@ export default function RoomPage() {
           setStatus(payload.new.status)
           setHostPlayerId(payload.new.host_player_id)
           setIsPublic(payload.new.is_public)
+          setStartingAt(payload.new.starting_at ? new Date(payload.new.starting_at).getTime() : null)
           if (payload.new.status === 'playing') {
             router.push(`/room/${code}/play`)
           }
         }
-
       )
       .subscribe()
 
@@ -294,16 +299,36 @@ export default function RoomPage() {
     })
   }
 
+  // Countdown ticker + auto-trigger effect
+  useEffect(() => {
+    if (!startingAt) {
+      setCountdown(null)
+      startTriggeredRef.current = false
+      return
+    }
+
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((startingAt - Date.now()) / 1000))
+      setCountdown(remaining)
+      if (remaining <= 0 && !startTriggeredRef.current && roomId) {
+        startTriggeredRef.current = true
+        supabase.functions.invoke('start-game', { body: { roomId } })
+      }
+    }
+    tick()
+    const interval = setInterval(tick, 500)
+    return () => clearInterval(interval)
+  }, [startingAt, roomId])
+
+
   async function handleStart() {
     if (!roomId) return
     if (seated.length < 4) {
       setError('Need at least 4 players to start')
       return
     }
-    const { error } = await supabase.functions.invoke('start-game', {
-      body: { roomId },
-    })
-    if (error) setError(error.message)
+    const target = new Date(Date.now() + 5000).toISOString()
+    await supabase.from('rooms').update({ starting_at: target }).eq('id', roomId)
   }
 
     async function handleLeaveWaitingRoom() {
@@ -405,7 +430,9 @@ export default function RoomPage() {
         ))}
       </ul>
 
-      {myPlayerId === hostPlayerId ? (
+      {countdown !== null ? (
+        <p className="text-2xl font-bold text-emerald-400">Game starting in {countdown}...</p>
+      ) : myPlayerId === hostPlayerId ? (
         <button
           className="w-full max-w-xs px-4 py-3 rounded bg-indigo-600 font-semibold disabled:opacity-40"
           disabled={seated.length < 4}
