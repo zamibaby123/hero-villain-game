@@ -352,37 +352,46 @@ export default function PlayPage() {
   // Results phase: poll for what happens next (win, or a new round)
   useEffect(() => {
     if (phase !== 'results' || !roomId) return
-    if (resultsStartedAt && Date.now() - resultsStartedAt < 5000) return
 
-    const interval = setInterval(async () => {
-      const { data: room } = await supabase
-        .from('rooms')
-        .select('status, winner')
-        .eq('id', roomId)
-        .single()
-      if (!room) return
+    let intervalId: ReturnType<typeof setInterval> | undefined
+    const elapsed = resultsStartedAt ? Date.now() - resultsStartedAt : 0
+    const delay = Math.max(0, 5000 - elapsed)
 
-      if (room.status === 'ended') {
-        setWinner(room.winner)
-        setPhase('ended')
-        return
-      }
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(async () => {
+        const { data: room } = await supabase
+          .from('rooms')
+          .select('status, winner')
+          .eq('id', roomId)
+          .single()
+        if (!room) return
 
-      const { data: latestRound } = await supabase
-        .from('rounds')
-        .select('id, round_number')
-        .eq('room_id', roomId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+        if (room.status === 'ended') {
+          setWinner(room.winner)
+          setPhase('ended')
+          return
+        }
 
-      if (latestRound && latestRound.id !== roundId) {
-        loadRound(latestRound.id)
-      }
-    }, 2000)
+        const { data: latestRound } = await supabase
+          .from('rounds')
+          .select('id, round_number')
+          .eq('room_id', roomId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
 
-    return () => clearInterval(interval)
-  }, [phase, roomId, roundId])
+        if (latestRound && latestRound.id !== roundId) {
+          loadRound(latestRound.id)
+        }
+      }, 2000)
+    }, delay)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [phase, roomId, resultsStartedAt])
+
 
   async function handleSubmitWord() {
     if (!roomId || !roundId) return
