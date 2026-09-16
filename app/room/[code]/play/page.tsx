@@ -433,10 +433,10 @@ export default function PlayPage() {
   }
 
   if (loading) {
-    return <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white"><p>Loading...</p></main>
+    return <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white"><p>Loading...</p></main>
   }
   if (error) {
-    return <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white"><p className="text-red-400">{error}</p></main>
+    return <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white"><p className="text-red-400">{error}</p></main>
   }
 
   const Timer = (
@@ -466,7 +466,7 @@ export default function PlayPage() {
   if (phase === 'role') {
     // Only reachable if alive — eliminated players skip straight to 'submit' as spectators
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {Timer}
         <p className="text-sm uppercase tracking-widest text-gray-400">You are the</p>
@@ -486,7 +486,7 @@ export default function PlayPage() {
   if (phase === 'submit') {
     if (!myAlive) {
       return (
-        <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+        <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
           <AppHeader username={myUsername} />
           {SpectatorBanner}
           {Timer}
@@ -496,7 +496,7 @@ export default function PlayPage() {
       )
     }
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {RoleBanner}
         {Timer}
@@ -523,7 +523,7 @@ export default function PlayPage() {
 
   if (phase === 'waiting') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {SpectatorBanner}
         {RoleBanner}
@@ -543,7 +543,7 @@ export default function PlayPage() {
     const allRevealed = submissions.length >= aliveCount
     const secondsToVoting = votingStartsAt ? Math.max(0, Math.ceil((votingStartsAt - Date.now()) / 1000)) : null
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {SpectatorBanner}
         {RoleBanner}
@@ -574,7 +574,7 @@ export default function PlayPage() {
 
   if (phase === 'voting') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {SpectatorBanner}
         {RoleBanner}
@@ -632,7 +632,7 @@ export default function PlayPage() {
 
   if (phase === 'results') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <AppHeader username={myUsername} />
         {SpectatorBanner}
         {eliminatedName ? (
@@ -710,8 +710,8 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 bg-gray-950 text-white">
-      
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
+    
       <h1 className="text-3xl font-bold">
         {winner === 'heroes' ? 'Heroes Win!' : winner === 'villain' ? 'Villain Wins!' : 'Game Over'}
       </h1>

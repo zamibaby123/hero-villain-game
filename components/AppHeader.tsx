@@ -15,7 +15,9 @@ export default function AppHeader({ username }: { username?: string | null }) {
 
   return (
     <>
-    <div className="fixed top-3 left-3 right-3 max-w-xs mx-auto flex justify-between items-start text-sm z-30 bg-gray-950/90 backdrop-blur-sm py-2 px-1 rounded">
+      <div className="fixed top-0 left-0 right-0 w-full flex justify-center text-sm z-30 bg-gray-900 border-b border-gray-800 py-3">
+        <div className="w-full max-w-xs flex justify-between items-start px-1">
+
         <span className="text-gray-400">
           {username ? (
             <>Playing as <span className="text-white font-semibold">{username}</span></>
@@ -32,7 +34,9 @@ export default function AppHeader({ username }: { username?: string | null }) {
             How to Play
           </button>
         </div>
+        </div>
       </div>
+
 
 
       {rulesOpen && (

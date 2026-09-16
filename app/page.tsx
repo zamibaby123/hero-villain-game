@@ -187,7 +187,7 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen flex flex-col items-center gap-6 p-6 bg-gray-950 text-white">
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
       
       <Suspense fallback={null}>
         <NoticeReader onNotice={setNotice} />

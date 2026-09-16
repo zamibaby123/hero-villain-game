@@ -326,7 +326,7 @@ export default function RoomPage() {
 
   if (checkingSeat) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <p>Loading...</p>
       </main>
     )
@@ -334,7 +334,7 @@ export default function RoomPage() {
 
   if (!isSeated) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
         <h1 className="text-2xl font-bold">Join Room {code}</h1>
         <p className="text-gray-400 text-sm">{seated.length} / 8 players in this room</p>
 
@@ -354,7 +354,7 @@ export default function RoomPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-gray-950 text-white">
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 pt-20 bg-gray-950 text-white">
       <h1 className="text-2xl font-bold">Room {code}</h1>
      
 
