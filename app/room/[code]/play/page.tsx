@@ -732,7 +732,7 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
     if (!roomId) return
     setActionTaken(true)
     const deviceId = getDeviceId()
-    const { error } = await supabase.functions.invoke('leave-room', { body: { roomId, deviceId } })
+    const { data, error } = await supabase.functions.invoke('leave-room', { body: { roomId, deviceId } })
     if (error) {
       try {
         const body = await error.context.json()
@@ -740,6 +740,8 @@ function EndedScreen({ roomId, code, winner }: { roomId: string | null; code: st
       } catch {
         alert('Failed to leave room')
       }
+    } else {
+      alert(`Deleted count: ${data?.deletedCount}, error: ${data?.deleteError}`)
     }
     router.push('/')
   }
